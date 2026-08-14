@@ -1,796 +1,213 @@
 <!doctype html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AgroTrace Simulator QA | Simulador funcional</title>
+  <title>AgroTrace Simulator QA | Sprint 3 v3.0.0</title>
   <style>
-    :root {
-      --bg: #f4f7f3;
-      --surface: #fff;
-      --ink: #18231c;
-      --muted: #53625a;
-      --primary: #165b40;
-      --primary2: #0e4430;
-      --accent: #e5f1e9;
-      --border: #c9d4cc;
-      --danger: #a12828;
-      --danger-bg: #fff0f0;
-      --warning: #755600;
-      --warning-bg: #fff8df;
-      --ok: #17633e;
-      --ok-bg: #eaf7ef;
-      --focus: #005fcc;
-      --shadow: 0 8px 24px rgba(24, 35, 28, .08);
-      --radius: 14px
-    }
-
-    * { box-sizing: border-box }
-    html { scroll-behavior: smooth }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif }
-    button, input, select, textarea { font: inherit }
-    button { cursor: pointer }
-
-    .skip { position: absolute; left: -9999px; top: 0; background: #fff; color: #000; padding: .75rem; z-index: 99 }
-    .skip:focus { left: .5rem }
-
-    .top { background: linear-gradient(130deg, var(--primary2), var(--primary)); color: #fff; padding: 1.2rem clamp(1rem, 4vw, 3rem) }
-    .topbar { max-width: 1380px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap }
-    .brand { display: flex; gap: .8rem; align-items: center }
-    .mark { width: 46px; height: 46px; border-radius: 12px; background: #fff; color: var(--primary); display: grid; place-items: center; font-weight: 900 }
-    .brand h1 { font-size: 1.25rem; margin: 0 }
-    .brand p { margin: 0; opacity: .85; font-size: .9rem }
-    .role-box { display: flex; align-items: center; gap: .6rem }
-    .role-box select { min-width: 180px }
-
-    .layout { max-width: 1380px; margin: auto; display: grid; grid-template-columns: 245px 1fr; gap: 1.2rem; padding: 1.2rem }
-    .nav { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .8rem; height: max-content; position: sticky; top: 1rem; box-shadow: var(--shadow) }
-    .nav button { width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink); padding: .72rem .8rem; border-radius: 9px; margin: .08rem 0 }
-    .nav button:hover, .nav button[aria-current="page"] { background: var(--accent); color: var(--primary2); font-weight: 700 }
-
-    .content { min-width: 0 }
-    .page { display: none }
-    .page.active { display: block }
-
-    .lead { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem }
-    .lead h2 { margin: .1rem 0 .35rem; font-size: 1.55rem }
-    .lead p { margin: .2rem 0; color: var(--muted) }
-    .notice { padding: .8rem 1rem; border-radius: 10px; background: var(--warning-bg); border-left: 5px solid #b58800; margin: .8rem 0 }
-
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem }
-    .card { grid-column: span 6; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); min-width: 0 }
-    .card.full { grid-column: 1/-1 }
-    .card.third { grid-column: span 4 }
-    .card h3 { margin: .1rem 0 .8rem }
-
-    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-bottom: 1rem }
-    .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem }
-    .metric span { display: block; color: var(--muted); font-size: .9rem }
-    .metric strong { font-size: 1.7rem; color: var(--primary2) }
-
-    form { display: grid; gap: .75rem }
-    label { display: grid; gap: .3rem; font-weight: 650 }
-    input, select, textarea { width: 100%; border: 1px solid #9cab9f; border-radius: 8px; padding: .66rem; background: #fff; color: #111 }
-    textarea { resize: vertical }
-    input:focus, select:focus, textarea:focus, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px }
-
-    .actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap }
-    .btn, button.primary { border: 0; border-radius: 9px; padding: .66rem .9rem; background: var(--primary); color: #fff; font-weight: 750 }
-    .btn:hover, button.primary:hover { background: var(--primary2) }
-    button.secondary { border: 1px solid var(--primary); color: var(--primary); background: #fff; border-radius: 9px; padding: .62rem .85rem; font-weight: 700 }
-    button.danger { border: 1px solid var(--danger); color: var(--danger); background: #fff; border-radius: 9px; padding: .62rem .85rem; font-weight: 700 }
-
-    .message { min-height: 1.5rem; margin: .25rem 0; font-weight: 650 }
-    .message.error { color: var(--danger) }
-    .message.success { color: var(--ok) }
-
-    .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px }
-    table { border-collapse: collapse; width: 100%; min-width: 680px; background: #fff }
-    th, td { text-align: left; padding: .72rem; border-bottom: 1px solid var(--border); vertical-align: top }
-    th { background: #e9f0eb; color: #173e2c }
-    tbody tr:hover { background: #f7faf8 }
-
-    .tag { display: inline-block; border-radius: 999px; padding: .16rem .55rem; font-size: .82rem; font-weight: 750; background: var(--accent); color: var(--primary2) }
-    .tag.warn { background: var(--warning-bg); color: var(--warning) }
-    .tag.bad { background: var(--danger-bg); color: var(--danger) }
-    .tag.ok { background: var(--ok-bg); color: var(--ok) }
-    .empty { color: var(--muted); font-style: italic }
-
-    .timeline { list-style: none; padding: 0; margin: 0 }
-    .timeline li { position: relative; border-left: 3px solid #91b29f; padding: 0 0 1rem 1rem; margin-left: .35rem }
-    .timeline li:before { content: ""; position: absolute; width: 11px; height: 11px; border-radius: 50%; background: var(--primary); left: -7px; top: .35rem }
-
-    .small { font-size: .9rem; color: var(--muted) }
-    .filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem }
-
-    .statusbar { position: fixed; right: 1rem; bottom: 1rem; max-width: 430px; background: #13291e; color: #fff; padding: .8rem 1rem; border-radius: 10px; box-shadow: var(--shadow); z-index: 20; display: none }
-    .statusbar.show { display: block }
-
-    .footer { max-width: 1380px; margin: 0 auto; padding: 0 1.2rem 2rem; color: var(--muted); font-size: .9rem }
-
-    @media(max-width:900px) {
-      .layout { grid-template-columns: 1fr }
-      .nav { position: static; display: flex; overflow: auto; white-space: nowrap }
-      .nav button { width: auto }
-      .card, .card.third { grid-column: 1/-1 }
-      .metrics { grid-template-columns: repeat(2, 1fr) }
-      .filters { grid-template-columns: 1fr }
-    }
-
-    @media print {
-      .screen-only, .nav, .top, .statusbar { display: none !important }
-      .print-only { display: block }
-      .layout { display: block; padding: 0 }
-      .page { display: none !important }
-      .page.print-target { display: block !important }
-      .card, .lead { box-shadow: none; break-inside: avoid }
-      .table-wrap { overflow: visible }
-      table { min-width: 0; font-size: 10pt }
-      body { background: #fff }
-    }
+    :root{--bg:#f4f7f3;--surface:#fff;--ink:#18231c;--muted:#53625a;--primary:#165b40;--primary2:#0e4430;--accent:#e5f1e9;--border:#c9d4cc;--danger:#a12828;--danger-bg:#fff0f0;--warning:#755600;--warning-bg:#fff8df;--ok:#17633e;--ok-bg:#eaf7ef;--focus:#005fcc;--shadow:0 8px 24px rgba(24,35,28,.08);--radius:14px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.skip{position:absolute;left:-9999px;top:0;background:#fff;color:#000;padding:.75rem;z-index:99}.skip:focus{left:.5rem}.top{background:linear-gradient(130deg,var(--primary2),var(--primary));color:#fff;padding:1.2rem clamp(1rem,4vw,3rem)}.topbar{max-width:1380px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}.brand{display:flex;gap:.8rem;align-items:center}.mark{width:46px;height:46px;border-radius:12px;background:#fff;color:var(--primary);display:grid;place-items:center;font-weight:900}.brand h1{font-size:1.25rem;margin:0}.brand p{margin:0;opacity:.85;font-size:.9rem}.role-box{display:flex;align-items:center;gap:.6rem}.role-box select{min-width:180px}.layout{max-width:1380px;margin:auto;display:grid;grid-template-columns:245px 1fr;gap:1.2rem;padding:1.2rem}.nav{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem;height:max-content;position:sticky;top:1rem;box-shadow:var(--shadow)}.nav button{width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:.72rem .8rem;border-radius:9px;margin:.08rem 0}.nav button:hover,.nav button[aria-current="page"]{background:var(--accent);color:var(--primary2);font-weight:700}.content{min-width:0}.page{display:none}.page.active{display:block}.lead{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}.lead h2{margin:.1rem 0 .35rem;font-size:1.55rem}.lead p{margin:.2rem 0;color:var(--muted)}.notice{padding:.8rem 1rem;border-radius:10px;background:var(--warning-bg);border-left:5px solid #b58800;margin:.8rem 0}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:1rem}.card{grid-column:span 6;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow);min-width:0}.card.full{grid-column:1/-1}.card.third{grid-column:span 4}.card h3{margin:.1rem 0 .8rem}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-bottom:1rem}.metric{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem}.metric span{display:block;color:var(--muted);font-size:.9rem}.metric strong{font-size:1.7rem;color:var(--primary2)}form{display:grid;gap:.75rem}label{display:grid;gap:.3rem;font-weight:650}input,select,textarea{width:100%;border:1px solid #9cab9f;border-radius:8px;padding:.66rem;background:#fff;color:#111}textarea{resize:vertical}input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.actions{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}.btn,button.primary{border:0;border-radius:9px;padding:.66rem .9rem;background:var(--primary);color:#fff;font-weight:750}.btn:hover,button.primary:hover{background:var(--primary2)}button.secondary{border:1px solid var(--primary);color:var(--primary);background:#fff;border-radius:9px;padding:.62rem .85rem;font-weight:700}button.danger{border:1px solid var(--danger);color:var(--danger);background:#fff;border-radius:9px;padding:.62rem .85rem;font-weight:700}.message{min-height:1.5rem;margin:.25rem 0;font-weight:650}.message.error{color:var(--danger)}.message.success{color:var(--ok)}.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px}table{border-collapse:collapse;width:100%;min-width:680px;background:#fff}th,td{text-align:left;padding:.72rem;border-bottom:1px solid var(--border);vertical-align:top}th{background:#e9f0eb;color:#173e2c}tbody tr:hover{background:#f7faf8}.tag{display:inline-block;border-radius:999px;padding:.16rem .55rem;font-size:.82rem;font-weight:750;background:var(--accent);color:var(--primary2)}.tag.warn{background:var(--warning-bg);color:var(--warning)}.tag.bad{background:var(--danger-bg);color:var(--danger)}.tag.ok{background:var(--ok-bg);color:var(--ok)}.empty{color:var(--muted);font-style:italic}.timeline{list-style:none;padding:0;margin:0}.timeline li{position:relative;border-left:3px solid #91b29f;padding:0 0 1rem 1rem;margin-left:.35rem}.timeline li:before{content:"";position:absolute;width:11px;height:11px;border-radius:50%;background:var(--primary);left:-7px;top:.35rem}.small{font-size:.9rem;color:var(--muted)}.filters{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem}.test-result{padding:.65rem;border-radius:9px;background:#eef5f0;margin:.35rem 0}.statusbar{position:fixed;right:1rem;bottom:1rem;max-width:430px;background:#13291e;color:#fff;padding:.8rem 1rem;border-radius:10px;box-shadow:var(--shadow);z-index:20;display:none}.statusbar.show{display:block}.restricted{padding:1rem;border:1px dashed #a87b00;background:var(--warning-bg);border-radius:10px}.footer{max-width:1380px;margin:0 auto;padding:0 1.2rem 2rem;color:var(--muted);font-size:.9rem}.screen-only{}.print-only{display:none}dialog{width:min(520px,calc(100% - 2rem));border:0;border-radius:14px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.28)}dialog::backdrop{background:rgba(10,25,17,.58)}.dialog-body{padding:1.3rem}.dialog-body h2{margin:0 0 .5rem}.dialog-body p{margin:.35rem 0}.dialog-actions{display:flex;justify-content:flex-end;gap:.7rem;margin-top:1.2rem}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.nav{position:static;display:flex;overflow:auto;white-space:nowrap}.nav button{width:auto}.card,.card.third{grid-column:1/-1}.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr}}
+    @media(max-width:520px){.layout{padding:.7rem}.top{padding:1rem}.metrics{grid-template-columns:1fr}.actions>*{width:100%}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+    @media print{.screen-only,.nav,.top,.statusbar{display:none!important}.print-only{display:block}.layout{display:block;padding:0}.page{display:none!important}.page.print-target{display:block!important}.card,.lead{box-shadow:none;break-inside:avoid}.table-wrap{overflow:visible}table{min-width:0;font-size:10pt}body{background:#fff}}
   </style>
 </head>
-
 <body>
-  <a class="skip" href="#main">Saltar al contenido principal</a>
-  <header class="top screen-only">
-    <div class="topbar">
-      <div class="brand">
-        <div class="mark" aria-hidden="true">AT</div>
-        <div>
-          <h1>AgroTrace Simulator QA</h1>
-          <p>Simulador local, funcional y verificable · Osorno, Región de Los Lagos</p>
-        </div>
+<a class="skip" href="#main">Saltar al contenido principal</a>
+<header class="top screen-only">
+  <div class="topbar">
+    <div class="brand"><div class="mark" aria-hidden="true">AT</div><div><h1>AgroTrace Simulator QA <span class="tag">Sprint 3 · v3.0.0</span></h1><p>Simulador local, funcional y verificable · Osorno, Región de Los Lagos</p></div></div>
+    <div class="role-box"><label for="roleSelect">Rol de simulación</label><select id="roleSelect"><option value="admin">Administrador</option><option value="vet">Veterinario</option><option value="operator">Operador</option></select></div>
+  </div>
+</header>
+<div class="layout">
+  <nav class="nav screen-only" aria-label="Módulos del simulador">
+    <button data-page="inicio" aria-current="page">Inicio</button>
+    <button data-page="predios">Predios</button>
+    <button data-page="animales">Animales</button>
+    <button data-page="sanidad">Vacunas y controles</button>
+    <button data-page="movimientos">Movimientos</button>
+    <button data-page="historial">Historial</button>
+    <button data-page="alertas">Alertas sanitarias</button>
+    <button data-page="reportes">Reportes</button>
+    <button data-page="carga">Carga masiva</button>
+    <button data-page="api">API mock</button>
+    <button data-page="trazabilidad">Trazabilidad y brechas</button>
+  </nav>
+  <main id="main" class="content" tabindex="-1">
+    <section id="inicio" class="page active">
+      <div class="lead"><span class="tag">SIMULACIÓN LOCAL</span><h2>Panel de trazabilidad ganadera</h2><p>Valida el registro de predios y animales, sanidad, movimientos, historial, alertas y reportes sin instalar software ni conectarse a servicios externos.</p></div>
+      <div class="metrics" id="metrics"></div>
+      <div class="grid">
+        <article class="card"><h3>Alcance implementado</h3><ul><li>RF-GAN-01 a RF-GAN-10.</li><li>Datos ficticios persistidos en este navegador.</li><li>Exportación CSV y salida PDF mediante impresión.</li><li>API mock local y medición de consultas.</li></ul></article>
+        <article class="card"><h3>Control de fidelidad</h3><p>Los permisos detallados por rol no fueron definidos en los documentos. Por ello, el selector diferencia el contexto del usuario, pero no inventa autorizaciones de negocio.</p><div class="notice">La autenticación y autorización seguras requieren backend real y están fuera de lo validable en un HTML local.</div></article>
+        <article class="card full"><h3>Datos demostrativos</h3><p class="small">Todos los registros son ficticios. Puedes restaurarlos en cualquier momento.</p><div class="actions"><button class="danger" id="resetData">Restaurar datos demo</button><button class="secondary" data-go="trazabilidad">Ver matriz de trazabilidad</button></div></article>
       </div>
-      <div class="role-box">
-        <label for="roleSelect">Rol de simulación</label>
-        <select id="roleSelect">
-          <option value="admin">Administrador</option>
-          <option value="vet">Veterinario</option>
-          <option value="operator">Operador</option>
-        </select>
+    </section>
+
+    <section id="predios" class="page">
+      <div class="lead"><h2>Predios</h2><p>RF-GAN-01 · Registro y consulta de información básica.</p></div>
+      <div class="grid">
+        <article class="card"><h3>Registrar predio</h3><form id="farmForm" novalidate><label>Código *<input name="code" required aria-describedby="farmMsg"></label><label>Nombre *<input name="name" required></label><label>Ubicación *<input name="location" value="Osorno, Región de Los Lagos" required></label><button class="primary">Guardar predio</button></form><p id="farmMsg" class="message" role="status"></p></article>
+        <article class="card"><h3>Predios registrados</h3><div class="table-wrap"><table><thead><tr><th>Código</th><th>Nombre</th><th>Ubicación</th><th>Stock</th></tr></thead><tbody id="farmRows"></tbody></table></div></article>
       </div>
-    </div>
-  </header>
+    </section>
 
-  <div class="layout">
-    <nav class="nav screen-only" aria-label="Módulos del simuladorS">
-      <button data-page="inicio" aria-current="page">Inicio</button>
-      <button data-page="predios">Predios</button>
-      <button data-page="animales">Animales</button>
-      <button data-page="sanidad">Vacunas y controles</button>
-      <button data-page="movimientos">Movimientos</button>
-      <button data-page="historial">Historial</button>
-      <button data-page="alertas">Alertas sanitarias</button>
-      <button data-page="reportes">Reportes</button>
-      <!-- <button data-page="carga">Carga masiva</button> -->
-      <!-- <button data-page="api">API mock</button> -->
-      <!-- <button data-page="trazabilidad">Trazabilidad y brechas</button> -->
-    </nav>
+    <section id="animales" class="page">
+      <div class="lead"><h2>Animales</h2><p>RF-GAN-02 y RF-GAN-03 · Registro con código único.</p></div>
+      <div class="grid">
+        <article class="card"><h3>Registrar animal</h3><form id="animalForm" novalidate><label>Código único *<input name="code" required></label><label>Predio *<select name="farmId" class="farm-select" required></select></label><button class="primary">Guardar animal</button></form><p id="animalMsg" class="message" role="status"></p><p class="small">Los documentos no definen otros campos obligatorios del animal; no se agregan como reglas formales.</p></article>
+        <article class="card"><h3>Animales registrados</h3><div class="table-wrap"><table><thead><tr><th>Código</th><th>Predio actual</th><th>Estado sanitario</th><th>Registro</th></tr></thead><tbody id="animalRows"></tbody></table></div></article>
+      </div>
+    </section>
 
-    <main id="main" class="content" tabindex="-1">
-      <!-- INICIO -->
-      <section id="inicio" class="page active">
-        <div class="lead"><span class="tag">SIMULACIÓN LOCAL</span>
-          <h2>Panel de trazabilidad ganadera</h2>
-          <p>Valida el registro de predios y animales, sanidad, movimientos, historial, alertas y reportes sin instalar software ni conectarse a servicios externos.</p>
-        </div>
-        <div class="metrics" id="metrics"></div>
-        <div class="grid">
-          <article class="card">
-            <h3>Alcance implementado</h3>
-            <ul>
-              <li>RF-GAN-01 a RF-GAN-10.</li>
-              <li>Datos ficticios persistidos en este navegador.</li>
-              <li>Exportación CSV y salida PDF mediante impresión.</li>
-              <li>API mock local y medición de consultas.</li>
-            </ul>
-          </article>
-          <article class="card">
-            <h3>Control de fidelidad</h3>
-            <p>Los permisos detallados por rol no fueron definidos en los documentos. Por ello, el selector diferencia el contexto del usuario, pero no inventa autorizaciones de negocio.</p>
-            <div class="notice">La autenticación y autorización seguras requieren backend real y están fuera de lo validable en un HTML local.</div>
-          </article>
-          <article class="card full">
-            <h3>Datos demostrativos</h3>
-            <p class="small">Todos los registros son ficticios. Puedes restaurarlos en cualquier momento.</p>
-            <div class="actions">
-              <button class="danger" id="resetData">Restaurar datos demo</button>
-              <button class="secondary" data-go="trazabilidad">Ver matriz de trazabilidad</button>
-            </div>
-          </article>
-        </div>
-      </section>
+    <section id="sanidad" class="page">
+      <div class="lead"><h2>Vacunas y controles sanitarios</h2><p>RF-GAN-04 y RF-GAN-05 · Registro asociado a un animal.</p></div>
+      <div class="grid">
+        <article class="card"><h3>Registrar evento sanitario</h3><form id="healthForm" novalidate><label>Animal *<select name="animalId" class="animal-select" required></select></label><label>Tipo de registro *<select name="kind" required><option value="">Seleccionar</option><option value="Vacuna">Vacuna</option><option value="Control sanitario">Control sanitario</option></select></label><label>Descripción *<input name="description" required></label><label>Fecha aplicada *<input name="date" type="date" required></label><label>Fecha de vencimiento o próximo control<input name="dueDate" type="date"></label><button class="primary">Guardar evento</button></form><p id="healthMsg" class="message" role="status"></p></article>
+        <article class="card"><h3>Registros sanitarios</h3><div class="table-wrap"><table><thead><tr><th>Animal</th><th>Tipo</th><th>Descripción</th><th>Fecha</th><th>Próxima fecha</th></tr></thead><tbody id="healthRows"></tbody></table></div></article>
+      </div>
+    </section>
 
-      <!-- PREDIOS -->
-      <section id="predios" class="page">
-        <div class="lead">
-          <h2>Predios</h2>
-          <p>RF-GAN-01 · Registro y consulta de información básica.</p>
-        </div>
-        <div class="grid">
-          <article class="card">
-            <h3>Registrar predio</h3>
-            <form id="farmForm" novalidate>
-              <label>Código *<input name="code" required aria-describedby="farmMsg"></label>
-              <label>Nombre *<input name="name" required></label>
-              <label>Ubicación *<input name="location" value="Osorno, Región de Los Lagos" required></label>
-              <button class="primary">Guardar predio</button>
-            </form>
-            <p id="farmMsg" class="message" role="status"></p>
-          </article>
-          <article class="card">
-            <h3>Predios registrados</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Ubicación</th>
-                    <th>Stock</th>
-                  </tr>
-                </thead>
-                <tbody id="farmRows"></tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
+    <section id="movimientos" class="page">
+      <div class="lead"><h2>Movimientos entre predios</h2><p>RF-GAN-07 y RF-GAN-08 · El movimiento actualiza la ubicación y queda en el historial.</p></div>
+      <div class="grid">
+        <article class="card"><h3>Registrar movimiento</h3><form id="movementForm" novalidate><label>Animal *<select name="animalId" class="animal-select" required></select></label><label>Predio de origen *<select name="originId" class="farm-select" required></select></label><label>Predio de destino *<select name="destinationId" class="farm-select" required></select></label><label>Fecha *<input name="date" type="date" required></label><button class="primary">Confirmar movimiento</button></form><p id="movementMsg" class="message" role="status"></p><p class="small">La confirmación previa es una decisión técnica mínima para evitar una acción difícil de revertir durante la simulación.</p></article>
+        <article class="card"><h3>Movimientos registrados</h3><div class="table-wrap"><table><thead><tr><th>Animal</th><th>Origen</th><th>Destino</th><th>Fecha</th></tr></thead><tbody id="movementRows"></tbody></table></div></article>
+      </div>
+    </section>
 
-      <!-- ANIMALES -->
-      <section id="animales" class="page">
-        <div class="lead">
-          <h2>Animales</h2>
-          <p>RF-GAN-02 y RF-GAN-03 · Registro con código único.</p>
-        </div>
-        <div class="grid">
-          <article class="card">
-            <h3>Registrar animal</h3>
-            <form id="animalForm" novalidate>
-              <label>Código único *<input name="code" required></label>
-              <label>Predio *<select name="farmId" class="farm-select" required></select></label>
-              <button class="primary">Guardar animal</button>
-            </form>
-            <p id="animalMsg" class="message" role="status"></p>
-          </article>
-          <article class="card">
-            <h3>Animales registrados</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Predio actual</th>
-                    <th>Estado sanitario</th>
-                    <th>Registro</th>
-                  </tr>
-                </thead>
-                <tbody id="animalRows"></tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
+    <section id="historial" class="page">
+      <div class="lead"><h2>Historial del animal</h2><p>RF-GAN-08 y RF-GAN-10 · Consulta cronológica de trazabilidad y sanidad.</p></div>
+      <article class="card full"><form id="historyForm"><div class="filters"><label>Animal<select name="animalId" class="animal-select" required></select></label><label>Filtro de evento<select name="type"><option value="">Todos</option><option value="REGISTRO">Registro</option><option value="SANIDAD">Sanidad</option><option value="MOVIMIENTO">Movimiento</option></select></label><div class="actions" style="align-self:end"><button class="primary">Consultar historial</button></div></div></form><p id="historyMsg" class="message" role="status"></p><div id="historyResult"></div></article>
+    </section>
 
-      <!-- SANIDAD -->
-      <section id="sanidad" class="page">
-        <div class="lead">
-          <h2>Vacunas y controles sanitarios</h2>
-          <p>RF-GAN-04 y RF-GAN-05 · Registro asociado a un animal.</p>
-        </div>
-        <div class="grid">
-          <article class="card">
-            <h3>Registrar evento sanitario</h3>
-            <form id="healthForm" novalidate>
-              <label>Animal *<select name="animalId" class="animal-select" required></select></label>
-              <label>Tipo de registro *
-                <select name="kind" required>
-                  <option value="">Seleccionar</option>
-                  <option value="Vacuna">Vacuna</option>
-                  <option value="Control sanitario">Control sanitario</option>
-                </select>
-              </label>
-              <label>Descripción *<input name="description" required></label>
-              <label>Fecha aplicada *<input name="date" type="date" required></label>
-              <label>Fecha de vencimiento o próximo control<input name="dueDate" type="date"></label>
-              <button class="primary">Guardar evento</button>
-            </form>
-            <p id="healthMsg" class="message" role="status"></p>
-          </article>
-          <article class="card">
-            <h3>Registros sanitarios</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Animal</th>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
-                    <th>Fecha</th>
-                    <th>Próxima fecha</th>
-                  </tr>
-                </thead>
-                <tbody id="healthRows"></tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
+    <section id="alertas" class="page">
+      <div class="lead"><h2>Alertas sanitarias</h2><p>RF-GAN-06 · Alertas automáticas por control sanitario vencido.</p></div>
+      <article class="card full"><div class="notice">Criterio aplicado: un evento sanitario con “próxima fecha” anterior a la fecha actual genera una alerta. El documento no define anticipación, severidades ni flujo de resolución.</div><div class="table-wrap"><table><thead><tr><th>Animal</th><th>Evento</th><th>Fecha vencida</th><th>Estado</th></tr></thead><tbody id="alertRows"></tbody></table></div></article>
+    </section>
 
-      <!-- MOVIMIENTOS -->
-      <section id="movimientos" class="page">
-        <div class="lead">
-          <h2>Movimientos entre predios</h2>
-          <p>RF-GAN-07 y RF-GAN-08 · El movimiento actualiza la ubicación y queda en el historial.</p>
-        </div>
-        <div class="grid">
-          <article class="card">
-            <h3>Registrar movimiento</h3>
-            <form id="movementForm" novalidate>
-              <label>Animal *<select name="animalId" class="animal-select" required></select></label>
-              <label>Predio de origen *<select name="originId" class="farm-select" required></select></label>
-              <label>Predio de destino *<select name="destinationId" class="farm-select" required></select></label>
-              <label>Fecha *<input name="date" type="date" required></label>
-              <button class="primary">Confirmar movimiento</button>
-            </form>
-            <p id="movementMsg" class="message" role="status"></p>
-          </article>
-          <article class="card">
-            <h3>Movimientos registrados</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Animal</th>
-                    <th>Origen</th>
-                    <th>Destino</th>
-                    <th>Fecha</th>
-                  </tr>
-                </thead>
-                <tbody id="movementRows"></tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
+    <section id="reportes" class="page">
+      <div class="lead"><h2>Reportes</h2><p>RF-GAN-09 y RT-GAN-07 · Stock por predio y estado sanitario.</p></div>
+      <div class="grid">
+        <article class="card full print-target" id="stockReport"><h3>Stock por predio</h3><div class="table-wrap"><table><thead><tr><th>Predio</th><th>Ubicación</th><th>Cantidad de animales</th></tr></thead><tbody id="stockRows"></tbody></table></div><div class="actions screen-only" style="margin-top:1rem"><button class="primary" id="exportStockCsv">Descargar CSV</button><button class="secondary" data-print="stockReport">Imprimir / guardar PDF</button></div></article>
+        <article class="card full print-target" id="healthReport"><h3>Estado sanitario</h3><div class="table-wrap"><table><thead><tr><th>Animal</th><th>Último evento</th><th>Próxima fecha</th><th>Condición</th></tr></thead><tbody id="healthReportRows"></tbody></table></div><div class="actions screen-only" style="margin-top:1rem"><button class="primary" id="exportHealthCsv">Descargar CSV</button><button class="secondary" data-print="healthReport">Imprimir / guardar PDF</button></div></article>
+      </div>
+    </section>
 
-      <!-- HISTORIAL -->
-      <section id="historial" class="page">
-        <div class="lead">
-          <h2>Historial del animal</h2>
-          <p>RF-GAN-08 y RF-GAN-10 · Consulta cronológica de trazabilidad y sanidad.</p>
-        </div>
-        <article class="card full">
-          <form id="historyForm">
-            <div class="filters">
-              <label>Animal<select name="animalId" class="animal-select" required></select></label>
-              <label>Filtro de evento
-                <select name="type">
-                  <option value="">Todos</option>
-                  <option value="REGISTRO">Registro</option>
-                  <option value="SANIDAD">Sanidad</option>
-                  <option value="MOVIMIENTO">Movimiento</option>
-                </select>
-              </label>
-              <div class="actions" style="align-self:end"><button class="primary">Consultar historial</button></div>
-            </div>
-          </form>
-          <p id="historyMsg" class="message" role="status"></p>
-          <div id="historyResult" style="margin-top:1rem"></div>
-        </article>
-      </section>
+    <section id="carga" class="page">
+      <div class="lead"><h2>Carga masiva simulada</h2><p>RT-GAN-02 y RT-GAN-04 · Datos ficticios mediante CSV o JSON.</p></div>
+      <div class="grid"><article class="card"><h3>Cargar animales</h3><form id="bulkForm"><label>Formato<select name="format"><option value="csv">CSV</option><option value="json">JSON</option></select></label><label>Contenido *<textarea name="content" rows="10" required placeholder="code,farmCode&#10;CL-OSO-0100,PR-OSO-001"></textarea></label><button class="primary">Validar y cargar</button></form><p id="bulkMsg" class="message" role="status"></p></article><article class="card"><h3>Formato admitido</h3><p><strong>CSV:</strong> encabezados <code>code,farmCode</code>.</p><p><strong>JSON:</strong> arreglo de objetos con <code>code</code> y <code>farmCode</code>.</p><div class="notice">La carga rechaza el lote completo si encuentra códigos duplicados, predios inexistentes o filas incompletas.</div></article></div>
+    </section>
 
-      <!-- ALERTAS -->
-      <section id="alertas" class="page">
-        <div class="lead">
-          <h2>Alertas sanitarias</h2>
-          <p>RF-GAN-06 · Alertas automáticas por control sanitario vencido.</p>
-        </div>
-        <article class="card full">
-          <div class="notice">Criterio aplicado: un evento sanitario con “próxima fecha” anterior a la fecha actual genera una alerta.</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Animal</th>
-                  <th>Evento</th>
-                  <th>Fecha vencida</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody id="alertRows"></tbody>
-            </table>
-          </div>
-        </article>
-      </section>
+    <section id="api" class="page">
+      <div class="lead"><h2>API mock local</h2><p>RT-GAN-03 y RT-GAN-05 · Simulación de servicios REST sin red.</p></div>
+      <div class="grid"><article class="card"><h3>Ejecutar consulta</h3><form id="apiForm"><label>Método<select name="method"><option>GET</option></select></label><label>Endpoint<select name="endpoint"><option>/animals</option><option>/farms</option><option>/vaccines</option><option>/movements</option><option>/health-checks</option></select></label><button class="primary">Ejecutar</button></form><p id="apiMsg" class="message" role="status"></p></article><article class="card"><h3>Respuesta simulada</h3><pre id="apiOutput" style="white-space:pre-wrap;max-height:420px;overflow:auto;background:#10251a;color:#e9fff1;padding:1rem;border-radius:9px">Selecciona un endpoint.</pre></article></div>
+    </section>
 
-      <!-- REPORTES -->
-      <section id="reportes" class="page">
-        <div class="lead">
-          <h2>Reportes</h2>
-          <p>RF-GAN-09 y RT-GAN-07 · Stock por predio y estado sanitario.</p>
-        </div>
-        <div class="grid">
-          <article class="card full print-target" id="stockReport">
-            <h3>Stock por predio</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Predio</th>
-                    <th>Ubicación</th>
-                    <th>Cantidad de animales</th>
-                  </tr>
-                </thead>
-                <tbody id="stockRows"></tbody>
-              </table>
-            </div>
-            <div class="actions screen-only" style="margin-top:1rem">
-              <button class="primary" id="exportStockCsv">Descargar CSV</button>
-              <button class="secondary" onclick="window.print()">Imprimir / guardar PDF</button>
-            </div>
-          </article>
-          <article class="card full print-target" id="healthReport">
-            <h3>Estado sanitario</h3>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Animal</th>
-                    <th>Último evento</th>
-                    <th>Próxima fecha</th>
-                    <th>Condición</th>
-                  </tr>
-                </thead>
-                <tbody id="healthReportRows"></tbody>
-              </table>
-            </div>
-            <div class="actions screen-only" style="margin-top:1rem">
-              <button class="primary" id="exportHealthCsv">Descargar CSV</button>
-              <button class="secondary" onclick="window.print()">Imprimir / guardar PDF</button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- CARGA MASIVA
-      <section id="carga" class="page">
-        <div class="lead">
-          <h2>Carga masiva simulada</h2>
-          <p>RT-GAN-02 y RT-GAN-04 · Datos ficticios mediante CSV o JSON.</p>
-        </div>
-        <div class="grid">
-          <article class="card">
-            <h3>Cargar animales</h3>
-            <form id="bulkForm">
-              <label>Formato
-                <select name="format">
-                  <option value="csv">CSV</option>
-                  <option value="json">JSON</option>
-                </select>
-              </label>
-              <label>Contenido *
-                <textarea name="content" rows="10" required placeholder="code,farmCode&#10;CL-OSO-0100,PR-OSO-001"></textarea>
-              </label>
-              <button class="primary">Validar y cargar</button>
-            </form>
-            <p id="bulkMsg" class="message" role="status"></p>
-          </article>
-          <article class="card">
-            <h3>Formato admitido</h3>
-            <p><strong>CSV:</strong> encabezados <code>code,farmCode</code>.</p>
-            <p><strong>JSON:</strong> arreglo de objetos con <code>code</code> y <code>farmCode</code>.</p>
-            <div class="notice">La carga rechaza el lote completo si encuentra códigos duplicados o predios inexistentes.</div>
-          </article>
-        </div>
-      </section> -->
-
-      <!-- API MOCK -->
-      <!-- <section id="api" class="page">
-        <div class="lead">
-          <h2>API mock local</h2>
-          <p>RT-GAN-03 y RT-GAN-05 · Simulación de servicios REST sin red.</p>
-        </div>
-        <div class="grid">
-          <article class="card">
-            <h3>Ejecutar consulta</h3>
-            <form id="apiForm">
-              <label>Método<select name="method"><option>GET</option></select></label>
-              <label>Endpoint
-                <select name="endpoint">
-                  <option value="/animals">/animals</option>
-                  <option value="/farms">/farms</option>
-                  <option value="/vaccines">/vaccines</option>
-                  <option value="/movements">/movements</option>
-                  <option value="/health-checks">/health-checks</option>
-                </select>
-              </label>
-              <button class="primary">Ejecutar</button>
-            </form>
-            <p id="apiMsg" class="message" role="status"></p>
-          </article>
-          <article class="card">
-            <h3>Respuesta simulada</h3>
-            <pre id="apiOutput" style="white-space:pre-wrap;max-height:420px;overflow:auto;background:#10251a;color:#e9fff1;padding:1rem;border-radius:9px">Selecciona un endpoint.</pre>
-          </article>
-        </div>
-      </section> -->
-
-      <!-- TRAZABILIDAD
-      <section id="trazabilidad" class="page">
-        <div class="lead">
-          <h2>Trazabilidad, decisiones y brechas</h2>
-          <p>Evidencia de correspondencia entre el documento y el simulador.</p>
-        </div>
-        <article class="card full">
-          <h3>Matriz de trazabilidad</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Requisito</th>
-                  <th>Módulo</th>
-                  <th>Funcionalidad</th>
-                  <th>Evidencia</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody id="traceRows"></tbody>
-            </table>
-          </div>
-        </article>
-      </section>
-    </main>
-  </div> -->
-
-  <footer class="footer">AgroTrace Simulator QA · Prototipo educativo · Datos ficticios y anonimizados.</footer>
-  <div id="liveStatus" class="statusbar" role="status" aria-live="polite"></div>
-
-  <script>
-    (() => {
-      "use strict";
-      const KEY = "agrotrace_regenerado_v3";
-      const nowDate = () => new Date().toISOString().slice(0, 10);
-      const uid = p => p + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
-      const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-      const fmt = v => v ? new Intl.DateTimeFormat("es-CL", {dateStyle: "medium"}).format(new Date(v + "T12:00:00")) : "No definida";
-
-      const seed = () => ({
-        farms: [
-          {id: "f1", code: "PR-OSO-001", name: "Predio Norte", location: "Osorno, Región de Los Lagos"},
-          {id: "f2", code: "PR-OSO-002", name: "Predio Sur", location: "Osorno, Región de Los Lagos"}
-        ],
-        animals: [
-          {id: "a1", code: "CL-OSO-0001", farmId: "f1", createdAt: "2026-07-20"},
-          {id: "a2", code: "CL-OSO-0002", farmId: "f1", createdAt: "2026-07-20"}
-        ],
-        health: [
-          {id: "h1", animalId: "a1", kind: "Vacuna", description: "Vacuna demostrativa", date: "2026-01-15", dueDate: "2026-06-15"}
-        ],
-        movements: [],
-        history: [
-          {id: "e1", animalId: "a1", type: "REGISTRO", date: "2026-07-20", description: "Registro inicial en PR-OSO-001."},
-          {id: "e2", animalId: "a2", type: "REGISTRO", date: "2026-07-20", description: "Registro inicial en PR-OSO-001."},
-          {id: "e3", animalId: "a1", type: "SANIDAD", date: "2026-01-15", description: "Vacuna: Vacuna demostrativa. Próxima fecha: 2026-06-15."}
-        ]
-      });
-
-      let db;
-      try { db = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { db = seed(); }
-
-      const save = () => { localStorage.setItem(KEY, JSON.stringify(db)); renderAll(); };
-      const farm = id => db.farms.find(x => x.id === id);
-      const animal = id => db.animals.find(x => x.id === id);
-
-      const status = (text, type = "success") => {
-        const el = document.querySelector("#liveStatus");
-        el.textContent = text;
-        el.classList.add("show");
-        clearTimeout(status.timer);
-        status.timer = setTimeout(() => el.classList.remove("show"), 3500);
-        return type;
-      };
-
-      const showMsg = (id, text, type) => {
-        const el = document.querySelector(id);
-        if (el) { el.textContent = text; el.className = "message " + type; }
-        status(text, type);
-      };
-
-      const required = form => {
-        const missing = [...form.querySelectorAll("[required]")].find(x => !String(x.value).trim());
-        if (missing) { missing.focus(); return false; }
-        return true;
-      };
-
-      function options() {
-        const fo = '<option value="">Seleccionar</option>' + db.farms.map(f => `<option value="${f.id}">${esc(f.code)} · ${esc(f.name)}</option>`).join("");
-        const ao = '<option value="">Seleccionar</option>' + db.animals.map(a => `<option value="${a.id}">${esc(a.code)}</option>`).join("");
-        document.querySelectorAll(".farm-select").forEach(s => { const v = s.value; s.innerHTML = fo; if ([...s.options].some(o => o.value === v)) s.value = v; });
-        document.querySelectorAll(".animal-select").forEach(s => { const v = s.value; s.innerHTML = ao; if ([...s.options].some(o => o.value === v)) s.value = v; });
-      }
-
-      function renderAll() {
-        options();
-        const alerts = db.health.filter(h => h.dueDate && h.dueDate < nowDate());
-
-        // Métricas
-        document.querySelector("#metrics").innerHTML = [
-          ["Predios", db.farms.length],
-          ["Animales", db.animals.length],
-          ["Alertas vencidas", alerts.length],
-          ["Movimientos", db.movements.length]
-        ].map(x => `<article class="metric"><span>${x[0]}</span><strong>${x[1]}</strong></article>`).join("");
-
-        // Tablas principales
-        document.querySelector("#farmRows").innerHTML = db.farms.map(f =>
-          `<tr><td>${esc(f.code)}</td><td>${esc(f.name)}</td><td>${esc(f.location)}</td><td>${db.animals.filter(a => a.farmId === f.id).length}</td></tr>`
-        ).join("") || '<tr><td colspan="4" class="empty">Sin predios.</td></tr>';
-
-        document.querySelector("#animalRows").innerHTML = db.animals.map(a => {
-          const latest = [...db.health].filter(h => h.animalId === a.id).sort((x, y) => y.date.localeCompare(x.date))[0];
-          return `<tr><td>${esc(a.code)}</td><td>${esc(farm(a.farmId)?.code || "Sin predio")}</td><td>${latest ? esc(latest.description) : "Sin registros"}</td><td>${fmt(a.createdAt)}</td></tr>`;
-        }).join("") || '<tr><td colspan="4" class="empty">Sin animales.</td></tr>';
-
-        document.querySelector("#healthRows").innerHTML = db.health.map(h =>
-          `<tr><td>${esc(animal(h.animalId)?.code || "S/D")}</td><td>${esc(h.kind)}</td><td>${esc(h.description)}</td><td>${fmt(h.date)}</td><td>${fmt(h.dueDate)}</td></tr>`
-        ).join("") || '<tr><td colspan="5" class="empty">Sin eventos sanitarios.</td></tr>';
-
-        document.querySelector("#movementRows").innerHTML = db.movements.map(m =>
-          `<tr><td>${esc(animal(m.animalId)?.code || "S/D")}</td><td>${esc(farm(m.originId)?.code || "S/D")}</td><td>${esc(farm(m.destinationId)?.code || "S/D")}</td><td>${fmt(m.date)}</td></tr>`
-        ).join("") || '<tr><td colspan="4" class="empty">Sin movimientos.</td></tr>';
-
-        // Alertas
-        document.querySelector("#alertRows").innerHTML = alerts.map(h =>
-          `<tr><td>${esc(animal(h.animalId)?.code || "S/D")}</td><td>${esc(h.description)}</td><td>${fmt(h.dueDate)}</td><td><span class="tag bad">Vencido</span></td></tr>`
-        ).join("") || '<tr><td colspan="4" class="empty">Sin alertas vigentes.</td></tr>';
-
-        // Reportes
-        document.querySelector("#stockRows").innerHTML = db.farms.map(f =>
-          `<tr><td>${esc(f.code)} - ${esc(f.name)}</td><td>${esc(f.location)}</td><td>${db.animals.filter(a => a.farmId === f.id).length}</td></tr>`
-        ).join("");
-
-        document.querySelector("#healthReportRows").innerHTML = db.animals.map(a => {
-          const latest = [...db.health].filter(h => h.animalId === a.id).sort((x, y) => y.date.localeCompare(x.date))[0];
-          const isBad = latest?.dueDate && latest.dueDate < nowDate();
-          return `<tr><td>${esc(a.code)}</td><td>${latest ? esc(latest.description) : "Sin eventos"}</td><td>${fmt(latest?.dueDate)}</td><td><span class="tag ${isBad ? "bad" : "ok"}">${isBad ? "Alerta" : "Al día"}</span></td></tr>`;
-        }).join("");
-
-          // Matriz de Trazabilidad
-          const trace = [
-            ["RF-GAN-01", "Predios", "Registro e información de predios", "Módulo Predios", "OK"],
-            ["RF-GAN-02", "Animales", "Registro de animales con código único", "Módulo Animales", "OK"],
-            ["RF-GAN-04", "Sanidad", "Registro de vacunas y controles", "Módulo Sanidad", "OK"],
-            ["RF-GAN-06", "Alertas", "Alertas automáticas por vencimiento", "Módulo Alertas", "OK"],
-            ["RF-GAN-07", "Movimientos", "Registro de traslado entre predios", "Módulo Movimientos", "OK"],
-            ["RF-GAN-08", "Historial", "Historial cronológico completo", "Módulo Historial", "OK"],
-            ["RF-GAN-09", "Reportes", "Reportes de stock y estado sanitario", "Módulo Reportes", "OK"]
-          ];
-
-          document.querySelector("#traceRows").innerHTML = trace.map(t =>
-            `<tr><td><strong>${t[0]}</strong></td><td>${t[1]}</td><td>${t[2]}</td><td>${t[3]}</td><td><span class="tag ok">${t[4]}</span></td></tr>`
-          ).join("");
-        }
-
-      // Navegación
-      document.querySelectorAll(".nav button, [data-go]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const page = btn.getAttribute("data-page") || btn.getAttribute("data-go");
-          document.querySelectorAll(".nav button").forEach(b => b.removeAttribute("aria-current"));
-          document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-          
-          const navBtn = document.querySelector(`.nav button[data-page="${page}"]`);
-          if (navBtn) navBtn.setAttribute("aria-current", "page");
-          document.querySelector(`#${page}`)?.classList.add("active");
-        });
-      });
-
-      // Formulario Predios
-      document.querySelector("#farmForm")?.addEventListener("submit", e => {
-        e.preventDefault();
-        const f = e.target;
-        if (!required(f)) return showMsg("#farmMsg", "Completa los campos requeridos.", "error");
-        
-        const code = f.code.value.trim().toUpperCase();
-        if (db.farms.some(x => x.code === code)) return showMsg("#farmMsg", "El código de predio ya existe.", "error");
-
-        db.farms.push({ id: uid("f"), code, name: f.name.value.trim(), location: f.location.value.trim() });
-        save();
-        f.reset();
-        showMsg("#farmMsg", "Predio registrado correctamente.", "success");
-      });
-
-      // Formulario Animales
-      document.querySelector("#animalForm")?.addEventListener("submit", e => {
-        e.preventDefault();
-        const f = e.target;
-        if (!required(f)) return showMsg("#animalMsg", "Completa los campos requeridos.", "error");
-
-        const code = f.code.value.trim().toUpperCase();
-        if (db.animals.some(x => x.code === code)) return showMsg("#animalMsg", "El código de animal ya existe.", "error");
-
-        const id = uid("a");
-        db.animals.push({ id, code, farmId: f.farmId.value, createdAt: nowDate() });
-        db.history.push({ id: uid("e"), animalId: id, type: "REGISTRO", date: nowDate(), description: `Registro inicial en predio.` });
-        save();
-        f.reset();
-        showMsg("#animalMsg", "Animal registrado correctamente.", "success");
-      });
-
-      // Formulario Sanidad
-      document.querySelector("#healthForm")?.addEventListener("submit", e => {
-        e.preventDefault();
-        const f = e.target;
-        if (!required(f)) return showMsg("#healthMsg", "Completa los campos requeridos.", "error");
-
-        const record = { id: uid("h"), animalId: f.animalId.value, kind: f.kind.value, description: f.description.value.trim(), date: f.date.value, dueDate: f.dueDate.value };
-        db.health.push(record);
-        db.history.push({ id: uid("e"), animalId: f.animalId.value, type: "SANIDAD", date: f.date.value, description: `${f.kind.value}: ${f.description.value.trim()}. Próxima fecha: ${f.dueDate.value || "N/A"}` });
-        save();
-        f.reset();
-        showMsg("#healthMsg", "Evento sanitario registrado.", "success");
-      });
-
-      // Formulario Movimientos
-      document.querySelector("#movementForm")?.addEventListener("submit", e => {
-        e.preventDefault();
-        const f = e.target;
-        if (!required(f)) return showMsg("#movementMsg", "Completa los campos requeridos.", "error");
-        if (f.originId.value === f.destinationId.value) return showMsg("#movementMsg", "El origen y destino deben ser distintos.", "error");
-
-        const a = animal(f.animalId.value);
-        a.farmId = f.destinationId.value;
-        db.movements.push({ id: uid("m"), animalId: f.animalId.value, originId: f.originId.value, destinationId: f.destinationId.value, date: f.date.value });
-        db.history.push({ id: uid("e"), animalId: f.animalId.value, type: "MOVIMIENTO", date: f.date.value, description: `Traslado desde ${farm(f.originId.value)?.code} a ${farm(f.destinationId.value)?.code}.` });
-        save();
-        f.reset();
-        showMsg("#movementMsg", "Movimiento grabado y ubicación actualizada.", "success");
-      });
-
-      // Formulario Historial
-      document.querySelector("#historyForm")?.addEventListener("submit", e => {
-        e.preventDefault();
-        const f = e.target;
-        const events = db.history
-          .filter(x => x.animalId === f.animalId.value && (!f.type.value || x.type === f.type.value))
-          .sort((x, y) => y.date.localeCompare(x.date));
-
-        const res = document.querySelector("#historyResult");
-        if (!events.length) { res.innerHTML = '<p class="empty">Sin eventos registrados para este filtro.</p>'; return; }
-
-        res.innerHTML = '<ul class="timeline">' + events.map(x =>
-          `<li><strong>[${esc(x.type)}] ${fmt(x.date)}</strong><br>${esc(x.description)}</li>`
-        ).join("") + '</ul>';
-      });
-
-      // API Mock
-      document.querySelector("#apiForm")?.addEventListener("submit", e => {
-        e.preventDefault();
-        const ep = e.target.endpoint.value;
-        let data;
-        if (ep === "/animals") data = db.animals;
-        else if (ep === "/farms") data = db.farms;
-        else if (ep === "/vaccines") data = db.health.filter(x => x.kind === "Vacuna");
-        else if (ep === "/movements") data = db.movements;
-        else if (ep === "/health-checks") data = db.health;
-
-        document.querySelector("#apiOutput").textContent = JSON.stringify(data, null, 2);
-        showMsg("#apiMsg", `Consulta ${ep} ejecutada con éxito.`, "success");
-      });
-
-      // Restaurar datos
-      document.querySelector("#resetData")?.addEventListener("click", () => {
-        localStorage.removeItem(KEY);
-        db = seed();
-        save();
-        status("Datos demostrativos restaurados.");
-      });
-
-      // Inicialización
-      document.addEventListener("DOMContentLoaded", renderAll);
-    })();
-  </script>
+    <section id="trazabilidad" class="page">
+      <div class="lead"><h2>Trazabilidad, decisiones y brechas</h2><p>Evidencia de correspondencia entre el documento y el simulador.</p></div>
+      <article class="card full"><h3>Matriz de trazabilidad</h3><div class="table-wrap"><table><thead><tr><th>Requisito</th><th>Módulo</th><th>Funcionalidad</th><th>Evidencia</th><th>Estado</th></tr></thead><tbody id="traceRows"></tbody></table></div></article>
+      <div class="grid" style="margin-top:1rem">
+        <article class="card"><h3>Ambigüedades no resueltas</h3><ul><li>No se definen permisos concretos para administrador, veterinario y operador.</li><li>No se indican campos básicos exactos de predios ni animales.</li><li>No se define catálogo, vencimiento, severidad ni resolución de alertas.</li><li>No se define formato o contenido exacto de los reportes PDF/CSV.</li><li>No se especifican volúmenes, concurrencia ni escenario de medición para el límite de 4 segundos.</li></ul></article>
+        <article class="card"><h3>Decisiones técnicas mínimas</h3><ul><li>Persistencia local mediante <code>localStorage</code>.</li><li>Identificadores internos generados en el navegador.</li><li>Fechas en formato ISO para mantener orden y relación.</li><li>Impresión del navegador como salida PDF.</li><li>API mock representada por funciones locales, sin peticiones externas.</li></ul></article>
+        <article class="card full"><h3>Limitaciones del HTML único</h3><p>No valida backend real, persistencia compartida, autenticación segura, autorización de servidor, concurrencia, auditoría inmutable, notificaciones reales, infraestructura ni carga real. Los controles de rol en cliente no equivalen a seguridad.</p></article>
+      </div>
+    </section>
+  </main>
+</div>
+<footer class="footer">AgroTrace Simulator QA · Sprint 3 v3.0.0 · Prototipo educativo · Datos ficticios y anonimizados.</footer>
+<dialog id="movementDialog" aria-labelledby="movementDialogTitle" aria-describedby="movementDialogText">
+  <div class="dialog-body">
+    <h2 id="movementDialogTitle">Confirmar movimiento</h2>
+    <p id="movementDialogText"></p>
+    <p class="small">La ubicación, el stock y el historial solo cambiarán al confirmar.</p>
+    <div class="dialog-actions"><button type="button" class="secondary" id="cancelMovement">Cancelar</button><button type="button" class="primary" id="confirmMovement">Confirmar movimiento</button></div>
+  </div>
+</dialog>
+<div id="liveStatus" class="statusbar" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  "use strict";
+  const KEY="agrotrace_sprint3_v300",LEGACY_KEY="agrotrace_regenerado_v3";
+  const nowDate=()=>new Date().toISOString().slice(0,10);
+  const uid=p=>p+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmt=v=>v?new Intl.DateTimeFormat("es-CL",{dateStyle:"medium"}).format(new Date(v+"T12:00:00")):"No definida";
+  const seed=()=>({farms:[{id:"f1",code:"PR-OSO-001",name:"Predio Norte",location:"Osorno, Región de Los Lagos"},{id:"f2",code:"PR-OSO-002",name:"Predio Sur",location:"Osorno, Región de Los Lagos"}],animals:[{id:"a1",code:"CL-OSO-0001",farmId:"f1",createdAt:"2026-07-20"},{id:"a2",code:"CL-OSO-0002",farmId:"f1",createdAt:"2026-07-20"}],health:[{id:"h1",animalId:"a1",kind:"Vacuna",description:"Vacuna demostrativa",date:"2026-01-15",dueDate:"2026-06-15"}],movements:[],history:[{id:"e1",animalId:"a1",type:"REGISTRO",date:"2026-07-20",description:"Registro inicial en PR-OSO-001."},{id:"e2",animalId:"a2",type:"REGISTRO",date:"2026-07-20",description:"Registro inicial en PR-OSO-001."},{id:"e3",animalId:"a1",type:"SANIDAD",date:"2026-01-15",description:"Vacuna: Vacuna demostrativa. Próxima fecha: 2026-06-15."}]});
+  let db;
+  try{db=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY))||seed()}catch{db=seed()}
+  const save=()=>{localStorage.setItem(KEY,JSON.stringify(db));renderAll()};
+  const farm=id=>db.farms.find(x=>x.id===id);
+  const animal=id=>db.animals.find(x=>x.id===id);
+  const normalize=v=>String(v||"").trim().toUpperCase();
+  const status=(text,type="success")=>{const el=document.querySelector("#liveStatus");el.textContent=text;el.classList.add("show");clearTimeout(status.timer);status.timer=setTimeout(()=>el.classList.remove("show"),3500);return type};
+  const showMsg=(id,text,type)=>{const el=document.querySelector(id);el.textContent=text;el.className="message "+type;status(text,type)};
+  const required=form=>{const missing=[...form.querySelectorAll("[required]")].find(x=>!String(x.value).trim());if(missing){missing.focus();return false}return true};
+  function options(){
+    const fo='<option value="">Seleccionar</option>'+db.farms.map(f=>`<option value="${f.id}">${esc(f.code)} · ${esc(f.name)}</option>`).join("");
+    const ao='<option value="">Seleccionar</option>'+db.animals.map(a=>`<option value="${a.id}">${esc(a.code)}</option>`).join("");
+    document.querySelectorAll(".farm-select").forEach(s=>{const v=s.value;s.innerHTML=fo;if([...s.options].some(o=>o.value===v))s.value=v});
+    document.querySelectorAll(".animal-select").forEach(s=>{const v=s.value;s.innerHTML=ao;if([...s.options].some(o=>o.value===v))s.value=v});
+  }
+  function renderAll(){
+    options();
+    const alerts=db.health.filter(h=>h.dueDate&&h.dueDate<nowDate());
+    document.querySelector("#metrics").innerHTML=[["Predios",db.farms.length],["Animales",db.animals.length],["Alertas vencidas",alerts.length],["Movimientos",db.movements.length]].map(x=>`<article class="metric"><span>${x[0]}</span><strong>${x[1]}</strong></article>`).join("");
+    document.querySelector("#farmRows").innerHTML=db.farms.map(f=>`<tr><td>${esc(f.code)}</td><td>${esc(f.name)}</td><td>${esc(f.location)}</td><td>${db.animals.filter(a=>a.farmId===f.id).length}</td></tr>`).join("")||'<tr><td colspan="4" class="empty">Sin predios.</td></tr>';
+    document.querySelector("#animalRows").innerHTML=db.animals.map(a=>{const latest=[...db.health].filter(h=>h.animalId===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];return `<tr><td>${esc(a.code)}</td><td>${esc(farm(a.farmId)?.code||"Sin predio")}</td><td>${latest?esc(latest.kind):"Sin registro"}</td><td>${fmt(a.createdAt)}</td></tr>`}).join("")||'<tr><td colspan="4" class="empty">Sin animales.</td></tr>';
+    document.querySelector("#healthRows").innerHTML=[...db.health].sort((a,b)=>b.date.localeCompare(a.date)).map(h=>`<tr><td>${esc(animal(h.animalId)?.code||"No disponible")}</td><td>${esc(h.kind)}</td><td>${esc(h.description)}</td><td>${fmt(h.date)}</td><td>${fmt(h.dueDate)}</td></tr>`).join("")||'<tr><td colspan="5" class="empty">Sin registros sanitarios.</td></tr>';
+    document.querySelector("#movementRows").innerHTML=[...db.movements].sort((a,b)=>b.date.localeCompare(a.date)).map(m=>`<tr><td>${esc(animal(m.animalId)?.code)}</td><td>${esc(farm(m.originId)?.code)}</td><td>${esc(farm(m.destinationId)?.code)}</td><td>${fmt(m.date)}</td></tr>`).join("")||'<tr><td colspan="4" class="empty">Sin movimientos.</td></tr>';
+    document.querySelector("#alertRows").innerHTML=alerts.map(h=>`<tr><td>${esc(animal(h.animalId)?.code)}</td><td>${esc(h.kind)}: ${esc(h.description)}</td><td>${fmt(h.dueDate)}</td><td><span class="tag bad">Vencido</span></td></tr>`).join("")||'<tr><td colspan="4" class="empty">No hay alertas vencidas.</td></tr>';
+    document.querySelector("#stockRows").innerHTML=db.farms.map(f=>`<tr><td>${esc(f.code)} · ${esc(f.name)}</td><td>${esc(f.location)}</td><td>${db.animals.filter(a=>a.farmId===f.id).length}</td></tr>`).join("");
+    document.querySelector("#healthReportRows").innerHTML=db.animals.map(a=>{const h=[...db.health].filter(x=>x.animalId===a.id).sort((x,y)=>y.date.localeCompare(x.date))[0];const cond=h?.dueDate&&h.dueDate<nowDate()?"Vencido":h?"Registrado":"Sin registro";return `<tr><td>${esc(a.code)}</td><td>${h?esc(h.kind+": "+h.description):"Sin registro"}</td><td>${fmt(h?.dueDate)}</td><td>${cond}</td></tr>`}).join("");
+  }
+  const trace=[
+    ["RF-GAN-01","Predios","Registrar y consultar predios","Formulario y tabla de predios","Implementado"],
+    ["RF-GAN-02","Animales","Registrar animales","Formulario y tabla de animales","Implementado"],
+    ["RF-GAN-03","Animales","Impedir código duplicado","Validación antes de guardar y cargar","Implementado"],
+    ["RF-GAN-04","Sanidad","Registrar vacunas","Tipo Vacuna e historial","Implementado"],
+    ["RF-GAN-05","Sanidad","Registrar controles sanitarios","Tipo Control sanitario e historial","Implementado"],
+    ["RF-GAN-06","Alertas","Generar alerta por vencimiento","Cálculo automático por fecha","Implementado parcialmente"],
+    ["RF-GAN-07","Movimientos","Mover entre predios","Formulario con origen y destino","Implementado"],
+    ["RF-GAN-08","Historial","Conservar movimientos","Evento automático de movimiento","Implementado"],
+    ["RF-GAN-09","Reportes","Consultar stock por predio","Reporte, CSV e impresión","Implementado"],
+    ["RF-GAN-10","Historial","Consultar historial sanitario","Línea de tiempo filtrable","Implementado"],
+    ["RT-GAN-01","Global","Prototipo navegable","Navegación responsive","Implementado"],
+    ["RT-GAN-02","Carga masiva","Datos CSV o JSON","Formulario de carga local","Implementado"],
+    ["RT-GAN-03","API mock","Endpoints requeridos","Consola mock local","Implementado"],
+    ["RT-GAN-04","Carga masiva","Carga simulada de animales","Carga transaccional local","Implementado"],
+    ["RT-GAN-05","API mock","Historial menor a 4 segundos","Medición en navegador","Implementado parcialmente"],
+    ["RT-GAN-06","Global","Roles diferenciados","Selector visible; permisos sin definición","Requiere aclaración"],
+    ["RT-GAN-07","Reportes","Exportación CSV/PDF","CSV real; PDF por impresión","Implementado parcialmente"]
+  ];
+  document.querySelector("#traceRows").innerHTML=trace.map(r=>`<tr>${r.map((c,i)=>`<td>${i===4?`<span class="tag ${c.includes("parcial")||c.includes("aclaración")?"warn":"ok"}">${esc(c)}</span>`:esc(c)}</td>`).join("")}</tr>`).join("");
+  document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-page]").forEach(x=>x.removeAttribute("aria-current"));b.setAttribute("aria-current","page");document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.querySelector("#"+b.dataset.page).classList.add("active");document.querySelector("#main").focus()}));
+  document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>document.querySelector(`[data-page="${b.dataset.go}"]`).click()));
+  document.querySelectorAll('input[type="date"]').forEach(i=>{if(!i.value)i.value=nowDate()});
+  document.querySelector("#farmForm").addEventListener("submit",e=>{e.preventDefault();const f=e.currentTarget;if(!required(f))return showMsg("#farmMsg","Completa todos los campos obligatorios.","error");const d=Object.fromEntries(new FormData(f)),code=normalize(d.code);if(db.farms.some(x=>normalize(x.code)===code))return showMsg("#farmMsg","Ya existe un predio con ese código.","error");db.farms.push({id:uid("f"),code,name:d.name.trim(),location:d.location.trim()});f.reset();f.location.value="Osorno, Región de Los Lagos";save();showMsg("#farmMsg","Predio registrado correctamente.","success")});
+  document.querySelector("#animalForm").addEventListener("submit",e=>{e.preventDefault();const f=e.currentTarget;if(!required(f))return showMsg("#animalMsg","Completa todos los campos obligatorios.","error");const d=Object.fromEntries(new FormData(f)),code=normalize(d.code);if(db.animals.some(x=>normalize(x.code)===code))return showMsg("#animalMsg","El código del animal ya existe.","error");const a={id:uid("a"),code,farmId:d.farmId,createdAt:nowDate()};db.animals.push(a);db.history.push({id:uid("e"),animalId:a.id,type:"REGISTRO",date:a.createdAt,description:`Registro inicial en ${farm(a.farmId).code}.`});f.reset();save();showMsg("#animalMsg","Animal registrado con código único.","success")});
+  document.querySelector("#healthForm").addEventListener("submit",e=>{e.preventDefault();const f=e.currentTarget;if(!required(f))return showMsg("#healthMsg","Completa los campos obligatorios.","error");const d=Object.fromEntries(new FormData(f));if(d.dueDate&&d.dueDate<d.date)return showMsg("#healthMsg","La próxima fecha no puede ser anterior a la fecha aplicada.","error");const h={id:uid("h"),animalId:d.animalId,kind:d.kind,description:d.description.trim(),date:d.date,dueDate:d.dueDate};db.health.push(h);db.history.push({id:uid("e"),animalId:h.animalId,type:"SANIDAD",date:h.date,description:`${h.kind}: ${h.description}.${h.dueDate?" Próxima fecha: "+h.dueDate+".":""}`});f.reset();f.querySelector('[name="date"]').value=nowDate();save();showMsg("#healthMsg","Evento sanitario registrado en el historial.","success")});
+  document.querySelector("#movementForm [name='animalId']").addEventListener("change",e=>{const a=animal(e.target.value);if(a)document.querySelector("#movementForm [name='originId']").value=a.farmId});
+  const movementDialog=document.querySelector("#movementDialog");let pendingMovement=null;
+  const executeMovement=()=>{if(!pendingMovement)return;const {form,data,a}=pendingMovement;db.movements.push({id:uid("m"),animalId:a.id,originId:data.originId,destinationId:data.destinationId,date:data.date});db.history.push({id:uid("e"),animalId:a.id,type:"MOVIMIENTO",date:data.date,description:`Movimiento desde ${farm(data.originId).code} hacia ${farm(data.destinationId).code}.`});a.farmId=data.destinationId;form.reset();form.querySelector('[name="date"]').value=nowDate();pendingMovement=null;save();showMsg("#movementMsg","Movimiento registrado y ubicación actualizada correctamente.","success")};
+  document.querySelector("#movementForm").addEventListener("submit",e=>{e.preventDefault();const f=e.currentTarget;if(!required(f))return showMsg("#movementMsg","Completa todos los campos obligatorios.","error");const d=Object.fromEntries(new FormData(f)),a=animal(d.animalId);if(!a)return showMsg("#movementMsg","Selecciona un animal válido.","error");if(a.farmId!==d.originId)return showMsg("#movementMsg",`Movimiento rechazado: ${a.code} pertenece actualmente a ${farm(a.farmId)?.code||"otro predio"}.`,"error");if(d.originId===d.destinationId)return showMsg("#movementMsg","Origen y destino deben ser diferentes.","error");pendingMovement={form:f,data:d,a};document.querySelector("#movementDialogText").textContent=`¿Mover ${a.code} desde ${farm(d.originId).code} hacia ${farm(d.destinationId).code}?`;movementDialog.showModal();document.querySelector("#cancelMovement").focus()});
+  document.querySelector("#cancelMovement").addEventListener("click",()=>{pendingMovement=null;movementDialog.close();showMsg("#movementMsg","Movimiento cancelado. No se realizaron cambios.","success")});
+  document.querySelector("#confirmMovement").addEventListener("click",()=>{movementDialog.close();executeMovement()});
+  movementDialog.addEventListener("cancel",e=>{e.preventDefault();pendingMovement=null;movementDialog.close();showMsg("#movementMsg","Movimiento cancelado. No se realizaron cambios.","success")});
+  document.querySelector("#historyForm").addEventListener("submit",e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget)),start=performance.now();let events=db.history.filter(x=>x.animalId===d.animalId);if(d.type)events=events.filter(x=>x.type===d.type);events.sort((a,b)=>b.date.localeCompare(a.date));const elapsed=performance.now()-start;document.querySelector("#historyResult").innerHTML=events.length?`<ol class="timeline">${events.map(x=>`<li><strong>${esc(x.type)}</strong><br>${esc(x.description)}<br><span class="small">${fmt(x.date)}</span></li>`).join("")}</ol>`:'<p class="empty">No hay eventos para el filtro.</p>';showMsg("#historyMsg",`Consulta completada en ${elapsed.toFixed(2)} ms (${elapsed<4000?"menor":"mayor"} a 4 segundos en esta simulación local).`,"success")});
+  document.querySelector("#bulkForm").addEventListener("submit",e=>{e.preventDefault();const f=e.currentTarget,d=Object.fromEntries(new FormData(f));try{let rows;if(d.format==="json"){rows=JSON.parse(d.content);if(!Array.isArray(rows))throw Error("El JSON debe ser un arreglo.")}else{const lines=d.content.trim().split(/\r?\n/);const heads=lines.shift().split(",").map(x=>x.trim());if(heads.join(",")!=="code,farmCode")throw Error("El encabezado debe ser code,farmCode.");rows=lines.map(l=>{const [code,farmCode]=l.split(",").map(x=>x.trim());return{code,farmCode}})}if(!rows.length)throw Error("No hay filas para cargar.");const seen=new Set(db.animals.map(a=>normalize(a.code)));const prepared=rows.map((r,i)=>{const code=normalize(r.code),fc=normalize(r.farmCode),fa=db.farms.find(x=>normalize(x.code)===fc);if(!code||!fc)throw Error(`Fila ${i+1}: código y predio son obligatorios.`);if(seen.has(code))throw Error(`Fila ${i+1}: código duplicado ${code}.`);if(!fa)throw Error(`Fila ${i+1}: no existe el predio ${fc}.`);seen.add(code);return{id:uid("a"),code,farmId:fa.id,createdAt:nowDate()}});prepared.forEach(a=>{db.animals.push(a);db.history.push({id:uid("e"),animalId:a.id,type:"REGISTRO",date:a.createdAt,description:`Registro inicial por carga masiva en ${farm(a.farmId).code}.`})});save();showMsg("#bulkMsg",`${prepared.length} animales cargados correctamente.`,"success")}catch(err){showMsg("#bulkMsg",err.message,"error")}});
+  document.querySelector("#apiForm").addEventListener("submit",e=>{e.preventDefault();const endpoint=new FormData(e.currentTarget).get("endpoint"),start=performance.now();const map={"/animals":db.animals,"/farms":db.farms,"/vaccines":db.health.filter(x=>x.kind==="Vacuna"),"/movements":db.movements,"/health-checks":db.health.filter(x=>x.kind==="Control sanitario")};const result=JSON.parse(JSON.stringify(map[endpoint]||[])),elapsed=performance.now()-start;document.querySelector("#apiOutput").textContent=JSON.stringify({mock:true,status:200,endpoint,elapsedMs:Number(elapsed.toFixed(2)),data:result},null,2);showMsg("#apiMsg",`Respuesta mock generada en ${elapsed.toFixed(2)} ms.`,"success")});
+  function csv(name,rows){const text=rows.map(r=>r.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\r\n"),blob=new Blob(["\ufeff"+text],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+  document.querySelector("#exportStockCsv").addEventListener("click",()=>csv("agrotrace_stock_predios.csv",[["codigo","nombre","ubicacion","stock"],...db.farms.map(f=>[f.code,f.name,f.location,db.animals.filter(a=>a.farmId===f.id).length])]));
+  document.querySelector("#exportHealthCsv").addEventListener("click",()=>csv("agrotrace_estado_sanitario.csv",[["animal","tipo","descripcion","fecha","proxima_fecha"],...db.health.map(h=>[animal(h.animalId)?.code,h.kind,h.description,h.date,h.dueDate])]));
+  document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".print-target").forEach(x=>x.classList.remove("print-target"));document.querySelector("#"+b.dataset.print).classList.add("print-target");window.print();document.querySelector("#stockReport").classList.add("print-target");document.querySelector("#healthReport").classList.add("print-target")}));
+  document.querySelector("#resetData").addEventListener("click",()=>{if(confirm("¿Restaurar datos demostrativos? Se reemplazarán los registros locales.")){db=seed();save();status("Datos demostrativos restaurados.")}});
+  document.querySelector("#roleSelect").addEventListener("change",e=>status(`Contexto cambiado a ${e.target.options[e.target.selectedIndex].text}. Los permisos requieren aclaración documental.`));
+  window.addEventListener("error",e=>{document.querySelector("#liveStatus").textContent="Error de JavaScript: "+e.message;document.querySelector("#liveStatus").classList.add("show")});
+  renderAll();
+})();
+</script>
 </body>
 </html>

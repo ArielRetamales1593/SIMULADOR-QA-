@@ -1,0 +1,16 @@
+{
+  "name": "agrotrace-sprint3-qa",
+  "version": "3.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:dom": "node --test tests/dom-regression.test.js",
+    "smoke": "playwright test -g smoke",
+    "test:sprint2": "playwright test -g S2",
+    "test:sprint3": "playwright test -g S3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "jsdom": "^26.1.0"
+  }
+}

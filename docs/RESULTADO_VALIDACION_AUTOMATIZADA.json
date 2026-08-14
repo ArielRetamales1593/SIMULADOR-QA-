@@ -1,0 +1,32 @@
+{
+  "fecha": "2026-08-13",
+  "version": "3.0.0",
+  "tipo": "Validación DOM local",
+  "resultado": "PASSED",
+  "total": 12,
+  "aprobadas": 12,
+  "fallidas": 0,
+  "cobertura": {
+    "sprint_2": [
+      "confirmación sanitaria",
+      "límite de fechas iguales",
+      "rechazo de fecha anterior",
+      "rechazo de origen incorrecto",
+      "cancelación de movimiento",
+      "confirmación de movimiento"
+    ],
+    "sprint_3": [
+      "alertas vencidas",
+      "stock tras movimiento",
+      "carga CSV válida",
+      "rechazo transaccional de duplicado",
+      "API mock 200",
+      "cambio de contexto de rol"
+    ]
+  },
+  "playwright": {
+    "estado": "NO EJECUTADO",
+    "motivo": "El entorno no pudo descargar el navegador Chromium.",
+    "scripts": "Incluidos y listos para ejecución local."
+  }
+}
